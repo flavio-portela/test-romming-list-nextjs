@@ -57,7 +57,6 @@ const SearchHeader = () => {
 
   const handleSearchQuery = useCallback(
     debounce((term: string) => {
-      console.log({ term });
       const params = new URLSearchParams(searchParams);
       if (term) {
         params.set("query", term);

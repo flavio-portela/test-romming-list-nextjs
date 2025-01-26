@@ -15,7 +15,10 @@ export async function getEvents({
 }) {
   let eventsList = await getParsedEvents();
   return filterEventsWithoutRFP(
-    filterBySearchTerm(filterByStatus(eventsList, filters), search)
+    filterBySearchTerm(
+      filterByStatus(eventsList, filters),
+      search.toLowerCase()
+    )
   );
 }
 function filterEventsWithoutRFP(events: ParsedEvent[]): ParsedEvent[] {
