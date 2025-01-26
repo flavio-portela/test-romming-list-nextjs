@@ -13,7 +13,7 @@ export async function getEvents({
   search: string;
   filters: string[];
 }) {
-  let eventsList = await getParsedEvents();
+  const eventsList = await getParsedEvents();
   return filterEventsWithoutRFP(
     filterBySearchTerm(
       filterByStatus(eventsList, filters),
