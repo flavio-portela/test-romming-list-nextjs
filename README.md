@@ -19,3 +19,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## Screenshots
 
 ![app screenshot](./screenshot.png)
+
+> @TODO 🧑‍💻
+>
+> - improve horizontal scrolling
+> - switch colors for each event
+> - split components
