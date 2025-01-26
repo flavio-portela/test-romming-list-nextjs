@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { debounce } from "lodash";
 import SearchIcon from "@icons/search.svg";
 import FiltersIcon from "@icons/filters.svg";
@@ -7,22 +7,22 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 const statusOptions: Array<{
-  value: number;
+  value: string;
   name: string;
   checked: boolean;
 }> = [
   {
-    value: 1,
+    value: "1",
     name: "Active",
     checked: false,
   },
   {
-    value: 2,
+    value: "2",
     name: "Closed",
     checked: false,
   },
   {
-    value: 3,
+    value: "3",
     name: "Canceled",
     checked: false,
   },
@@ -36,6 +36,18 @@ const SearchHeader = () => {
   const [statusOptionCheckedState, setStatusOptionsCheckedState] = useState(
     new Array(statusOptions.length).fill(false)
   );
+
+  useEffect(() => {
+    const filters = searchParams.get("filters");
+    if (filters) {
+      const currentFilters = filters.split(",");
+      setStatusOptionsCheckedState((state) => {
+        return state.map((_, i) => {
+          return currentFilters.includes(statusOptions[i].value);
+        });
+      });
+    }
+  }, [searchParams]);
 
   const handleStatusFilterChange = (position: number) => {
     setStatusOptionsCheckedState((state) => {

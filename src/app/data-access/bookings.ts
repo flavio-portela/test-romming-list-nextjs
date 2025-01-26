@@ -104,7 +104,6 @@ export async function getEvents({
   }
 
   // remove events that do not include any RFPs
-  console.log({ RFPMatch });
   if (RFPMatch || filters.length) {
     eventsList = eventsList.filter((event) => {
       return event.RequestForProposalList.length > 0;
