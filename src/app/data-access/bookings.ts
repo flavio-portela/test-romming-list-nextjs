@@ -1,51 +1,38 @@
-export interface Booking {
-  id: number;
-  room_code: string;
-  primary_guest: string;
-  roommates: string;
-  guests: number;
-  room_name: string;
-  check_in: string; // ISO date
-  check_out: string; // ISO date
-  booking_date: string; // ISO date
-}
+import { promises as fs } from "fs";
+import type { Rooming, Event } from "@/app/data-access/bookings.types";
 
-export interface DlrRfp {
-  rfp_launchpad_id: string;
-  event_name: string;
-  event_internal_name: string;
-  event_start_date: string; // ISO date
-  event_end_date: string; // ISO date
-  agreement_type: string; // @TODO: make this an union
-  agreement_path: string;
-}
+export async function getEvents() {
+  const file = await fs.readFile(
+    process.cwd() + "/src/app/data-access/test-data.json",
+    "utf-8"
+  );
+  const data = JSON.parse(file) as Array<Rooming>;
 
-export interface Rooming {
-  id: number;
-  status_id: number;
-  rfp_id: number;
-  hotel_id: number;
-  platform_id: number;
-  cutoff_date: string; // ISO date
-  created_at: string; // ISO date
-  modified_at: string; // ISO date,
-  drl_rooming_list_bookings: Array<Booking>;
-  drl_rfp: DlrRfp;
-}
+  const events = data.reduce((prev, current) => {
+    const eventName = current.drl_rfp.event_name;
+    if (!prev[eventName]) {
+      prev[eventName] = {
+        name: current.drl_rfp.event_name,
+        RequestForProposalList: [],
+      };
+    }
+    if (prev[eventName]) {
+      // We already have this event
+      // append to the rfp list
+      prev[eventName].RequestForProposalList.push({
+        agreementType: current.drl_rfp.agreement_type,
+        cutoffDate: current.cutoff_date,
+        name: current.drl_rfp.event_internal_name,
+        totalBookings: current.drl_rooming_list_bookings.length,
+        maxBookingDate: new Date().toISOString(),
+        minBookingDate: new Date().toISOString(),
+        id: current.drl_rfp.rfp_launchpad_id,
+        agreementPath: current.drl_rfp.agreement_path,
+      });
+    }
+    return prev;
+  }, {} as Record<string, Event>);
 
-// Parsed event
-
-export interface RFP {
-  name: DlrRfp["event_name"];
-  agreementType: DlrRfp["agreement_type"];
-  agreementPath: DlrRfp["agreement_path"];
-  cutoffDate: Rooming["cutoff_date"];
-  minBookingDate: string;
-  maxBookingDate: string;
-  totalBookings: number;
-  id: DlrRfp["rfp_launchpad_id"];
-}
-export interface Event {
-  name: DlrRfp["event_name"];
-  RFPList: Array<RFP>;
+  const eventsList = Object.values(events);
+  return eventsList;
 }

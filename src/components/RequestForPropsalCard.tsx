@@ -3,15 +3,15 @@
  * - mode hard-coded colors to theme
  */
 
-import type { RFP } from "@/app/data-access/bookings";
+import type { ParsedRequestForProposal } from "@/app/data-access/bookings.types";
 import DownloadIcon from "@icons/download.svg";
 import CalendarIcon from "@icons/calendar.svg";
 
 interface RFPCard {
-  rfp: RFP;
+  rfp: ParsedRequestForProposal;
 }
 
-const RFPCard = ({ rfp }: RFPCard) => {
+const RequestForProposalCard = ({ rfp }: RFPCard) => {
   return (
     <div className="border-slate-300 rounded-md min-w-[400px] bg-white p-4">
       <div className="flex border-1  justify-between">
@@ -56,4 +56,4 @@ const RFPCard = ({ rfp }: RFPCard) => {
   );
 };
 
-export default RFPCard;
+export default RequestForProposalCard;
