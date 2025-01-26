@@ -5,11 +5,14 @@ import { getEvents } from "@/app/data-access/bookings";
 export default async function Home(props: {
   searchParams?: Promise<{
     query?: string;
+    filters?: string;
   }>;
 }) {
   const searchParams = await props.searchParams;
   const query = searchParams?.query || "";
-  const events = await getEvents({ search: query });
+  const filters = searchParams?.filters?.split(",") || [];
+
+  const events = await getEvents({ search: query, filters });
 
   return (
     <div className="min-h-screen bg-(--background) p-10">

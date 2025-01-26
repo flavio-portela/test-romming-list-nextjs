@@ -1,18 +1,51 @@
 "use client";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { debounce } from "lodash";
 import SearchIcon from "@icons/search.svg";
 import FiltersIcon from "@icons/filters.svg";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
+const statusOptions: Array<{
+  value: number;
+  name: string;
+  checked: boolean;
+}> = [
+  {
+    value: 1,
+    name: "Active",
+    checked: false,
+  },
+  {
+    value: 2,
+    name: "Closed",
+    checked: false,
+  },
+  {
+    value: 3,
+    name: "Canceled",
+    checked: false,
+  },
+];
+
 const SearchHeader = () => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
 
-  const handleSearch = useCallback(
+  const [statusOptionCheckedState, setStatusOptionsCheckedState] = useState(
+    new Array(statusOptions.length).fill(false)
+  );
+
+  const handleStatusFilterChange = (position: number) => {
+    setStatusOptionsCheckedState((state) => {
+      return state.map((s, i) => (i === position ? !s : s));
+    });
+  };
+
+  const handleSearchQuery = useCallback(
     debounce((term: string) => {
+      console.log({ term });
       const params = new URLSearchParams(searchParams);
       if (term) {
         params.set("query", term);
@@ -21,8 +54,30 @@ const SearchHeader = () => {
       }
       replace(`${pathname}?${params.toString()}`);
     }, 300),
+
     [searchParams]
   );
+
+  const handleSearchStatus = () => {
+    const params = new URLSearchParams(searchParams);
+    // Get the selected filters
+    const selectedFilters = statusOptionCheckedState.reduce(
+      (selected, status, index) => {
+        if (status) {
+          selected.push(statusOptions[index].value);
+          return selected;
+        }
+        return selected;
+      },
+      [] as string[]
+    );
+    if (selectedFilters.length) {
+      params.set("filters", selectedFilters);
+    } else {
+      params.delete("filters");
+    }
+    replace(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <div className={`flex gap-10 mt-8`}>
@@ -35,7 +90,7 @@ const SearchHeader = () => {
           placeholder="Search"
           defaultValue={searchParams.get("query")?.toString()}
           onChange={(e) => {
-            handleSearch(e.target.value);
+            handleSearchQuery(e.target.value);
           }}
         />
       </div>
@@ -49,21 +104,29 @@ const SearchHeader = () => {
           className="flex flex-col p-3 gap-2 rounded-md mt-2 w-56 bg-white ring-1 shadow-lg ring-black/5 transition"
         >
           <span className="text-xs text-[#777E90]">RFP STATUS</span>
-          <label className="flex items-center font-semibold">
-            <input type="checkbox" className="mr-2" />
-            Active
-          </label>
-          <label className="flex items-center font-semibold">
-            <input type="checkbox" className="mr-2" />
-            Closed
-          </label>
-          <label className="flex items-center font-semibold">
-            <input type="checkbox" className="mr-2" />
-            Canceled
-          </label>
-          <button className="bg-[#4323FF] text-white font-semibold rounded-md py-2">
+          {statusOptions.map((option, index) => {
+            return (
+              <label
+                className="flex items-center font-semibold"
+                key={`status-option-${index}`}
+              >
+                <input
+                  type="checkbox"
+                  value={option.value}
+                  checked={statusOptionCheckedState[index]}
+                  className="mr-2"
+                  onChange={() => handleStatusFilterChange(index)}
+                />
+                {option.name}
+              </label>
+            );
+          })}
+          <PopoverButton
+            onClick={handleSearchStatus}
+            className="bg-[#4323FF] text-white font-semibold rounded-md py-2"
+          >
             Save
-          </button>
+          </PopoverButton>
         </PopoverPanel>
       </Popover>
     </div>

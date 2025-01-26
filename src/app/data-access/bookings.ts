@@ -6,7 +6,13 @@ import type {
 } from "@/app/data-access/bookings.types";
 import { format, fromUnixTime, getUnixTime } from "date-fns";
 
-export async function getEvents({ search = "" }: { search: string }) {
+export async function getEvents({
+  search = "",
+  filters = [],
+}: {
+  search: string;
+  filters: string[];
+}) {
   const file = await fs.readFile(
     process.cwd() + "/src/app/data-access/test-data.json",
     "utf-8"
@@ -37,18 +43,33 @@ export async function getEvents({ search = "" }: { search: string }) {
         minBookingDate: fromUnixTime(minBookingDate).toISOString(),
         id: current.drl_rfp.rfp_launchpad_id,
         agreementPath: current.drl_rfp.agreement_path,
+        status_id: current.status_id,
       });
     }
     return events;
   }, {} as Record<string, ParsedEvent>);
 
-  const eventsList = Object.values(events);
+  let eventsList = Object.values(events);
 
-  // filter events
+  let RFPMatch = false; // flag to tell if a search term matched any RFP
+
+  if (filters.length) {
+    eventsList.map((event) => {
+      event.RequestForProposalList = event.RequestForProposalList.filter(
+        (rfp) => {
+          if (filters.includes(rfp.status_id.toString())) {
+            return true;
+          }
+          return false;
+        }
+      );
+      return event;
+    });
+  }
+
   if (search) {
     // first filter RFPs
-    let RFPMatch = false; // flag to tell if a search term matched any RFP
-    let filteredEvents = eventsList.map((event) => {
+    eventsList = eventsList.map((event) => {
       const RFPs = event.RequestForProposalList.filter((rfp) => {
         // Get dates
         const cutOffDateStr = format(rfp.cutoffDate, "MMM d");
@@ -74,21 +95,20 @@ export async function getEvents({ search = "" }: { search: string }) {
       return event;
     });
 
-    // remove events that do not include any RFPs
-    if (RFPMatch) {
-      filteredEvents = filteredEvents.filter((event) => {
-        return event.RequestForProposalList.length > 0;
-      });
-    }
-
     // If the search term does not matches any RFP then try to filter by event name
     if (!RFPMatch) {
-      filteredEvents = filteredEvents.filter((event) => {
+      eventsList = eventsList.filter((event) => {
         return event.name.toLowerCase().includes(search);
       });
     }
+  }
 
-    return filteredEvents;
+  // remove events that do not include any RFPs
+  console.log({ RFPMatch });
+  if (RFPMatch || filters.length) {
+    eventsList = eventsList.filter((event) => {
+      return event.RequestForProposalList.length > 0;
+    });
   }
 
   return eventsList;

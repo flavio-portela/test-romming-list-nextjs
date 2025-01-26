@@ -44,6 +44,7 @@ export interface ParsedRequestForProposal {
   maxBookingDate: string;
   totalBookings: number;
   id: RequestForProposal["rfp_launchpad_id"];
+  status_id: Rooming["status_id"];
 }
 
 export interface ParsedEvent {
