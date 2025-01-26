@@ -1,0 +1,51 @@
+export interface Booking {
+  id: number;
+  room_code: string;
+  primary_guest: string;
+  roommates: string;
+  guests: number;
+  room_name: string;
+  check_in: string; // ISO date
+  check_out: string; // ISO date
+  booking_date: string; // ISO date
+}
+
+export interface DlrRfp {
+  rfp_launchpad_id: string;
+  event_name: string;
+  event_internal_name: string;
+  event_start_date: string; // ISO date
+  event_end_date: string; // ISO date
+  agreement_type: string; // @TODO: make this an union
+  agreement_path: string;
+}
+
+export interface Rooming {
+  id: number;
+  status_id: number;
+  rfp_id: number;
+  hotel_id: number;
+  platform_id: number;
+  cutoff_date: string; // ISO date
+  created_at: string; // ISO date
+  modified_at: string; // ISO date,
+  drl_rooming_list_bookings: Array<Booking>;
+  drl_rfp: DlrRfp;
+}
+
+// Parsed event
+
+export interface RFP {
+  name: DlrRfp["event_name"];
+  agreementType: DlrRfp["agreement_type"];
+  agreementPath: DlrRfp["agreement_path"];
+  cutoffDate: Rooming["cutoff_date"];
+  minBookingDate: string;
+  maxBookingDate: string;
+  totalBookings: number;
+  id: DlrRfp["rfp_launchpad_id"];
+}
+export interface Event {
+  name: DlrRfp["event_name"];
+  RFPList: Array<RFP>;
+}
