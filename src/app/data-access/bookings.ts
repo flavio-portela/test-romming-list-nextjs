@@ -13,6 +13,93 @@ export async function getEvents({
   search: string;
   filters: string[];
 }) {
+  let eventsList = await getParsedEvents();
+
+  let { events: filteredEvents, RFPMatch } = filterBySearchTerm(
+    filterByStatus(eventsList, filters),
+    search
+  );
+
+  // remove events that do not include any RFPs
+  if (RFPMatch || filters.length) {
+    filteredEvents = filteredEvents.filter((event) => {
+      return event.RequestForProposalList.length > 0;
+    });
+  }
+
+  return eventsList;
+}
+
+function filterBySearchTerm(
+  events: ParsedEvent[],
+  search: string
+): {
+  events: ParsedEvent[];
+  RFPMatch: boolean;
+} {
+  let RFPMatch = false;
+  if (search) {
+    // first filter RFPs
+    events = events.map((event) => {
+      const RFPs = event.RequestForProposalList.filter((rfp) => {
+        // Get dates
+        const cutOffDateStr = format(rfp.cutoffDate, "MMM d");
+        const minBookingDateStr = format(rfp.minBookingDate, "MMM d");
+        const maxBookingDateStr = format(rfp.maxBookingDate, "MMM d yyyy");
+        const match =
+          rfp.name.toLowerCase().includes(search) ||
+          rfp.cutoffDate.toLowerCase().includes(search) ||
+          rfp.agreementType.toLowerCase().includes(search) ||
+          cutOffDateStr.toLowerCase().includes(search) ||
+          minBookingDateStr.toLowerCase().includes(search) ||
+          maxBookingDateStr.toLowerCase().includes(search);
+        if (match) {
+          RFPMatch = true;
+        }
+        return match;
+      });
+
+      if (RFPMatch) {
+        event.RequestForProposalList = RFPs;
+      }
+
+      return event;
+    });
+
+    // If the search term does not matches any RFP then try to filter by event name
+    if (!RFPMatch) {
+      events = events.filter((event) => {
+        return event.name.toLowerCase().includes(search);
+      });
+    }
+  }
+  return {
+    events,
+    RFPMatch,
+  };
+}
+
+function filterByStatus(
+  events: ParsedEvent[],
+  filters: string[]
+): ParsedEvent[] {
+  if (filters.length) {
+    events.map((event) => {
+      event.RequestForProposalList = event.RequestForProposalList.filter(
+        (rfp) => {
+          if (filters.includes(rfp.status_id.toString())) {
+            return true;
+          }
+          return false;
+        }
+      );
+      return event;
+    });
+  }
+  return events;
+}
+
+async function getParsedEvents(): Promise<ParsedEvent[]> {
   const file = await fs.readFile(
     process.cwd() + "/src/app/data-access/test-data.json",
     "utf-8"
@@ -49,68 +136,7 @@ export async function getEvents({
     return events;
   }, {} as Record<string, ParsedEvent>);
 
-  let eventsList = Object.values(events);
-
-  let RFPMatch = false; // flag to tell if a search term matched any RFP
-
-  if (filters.length) {
-    eventsList.map((event) => {
-      event.RequestForProposalList = event.RequestForProposalList.filter(
-        (rfp) => {
-          if (filters.includes(rfp.status_id.toString())) {
-            return true;
-          }
-          return false;
-        }
-      );
-      return event;
-    });
-  }
-
-  if (search) {
-    // first filter RFPs
-    eventsList = eventsList.map((event) => {
-      const RFPs = event.RequestForProposalList.filter((rfp) => {
-        // Get dates
-        const cutOffDateStr = format(rfp.cutoffDate, "MMM d");
-        const minBookingDateStr = format(rfp.minBookingDate, "MMM d");
-        const maxBookingDateStr = format(rfp.maxBookingDate, "MMM d yyyy");
-        const match =
-          rfp.name.toLowerCase().includes(search) ||
-          rfp.cutoffDate.toLowerCase().includes(search) ||
-          rfp.agreementType.toLowerCase().includes(search) ||
-          cutOffDateStr.toLowerCase().includes(search) ||
-          minBookingDateStr.toLowerCase().includes(search) ||
-          maxBookingDateStr.toLowerCase().includes(search);
-        if (match) {
-          RFPMatch = true;
-        }
-        return match;
-      });
-
-      if (RFPMatch) {
-        event.RequestForProposalList = RFPs;
-      }
-
-      return event;
-    });
-
-    // If the search term does not matches any RFP then try to filter by event name
-    if (!RFPMatch) {
-      eventsList = eventsList.filter((event) => {
-        return event.name.toLowerCase().includes(search);
-      });
-    }
-  }
-
-  // remove events that do not include any RFPs
-  if (RFPMatch || filters.length) {
-    eventsList = eventsList.filter((event) => {
-      return event.RequestForProposalList.length > 0;
-    });
-  }
-
-  return eventsList;
+  return Object.values(events);
 }
 
 function getMinMaxBookingDates(bookings: Array<Booking>) {
