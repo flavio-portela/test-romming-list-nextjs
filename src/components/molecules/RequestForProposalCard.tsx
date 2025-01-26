@@ -1,8 +1,3 @@
-/**
- * @TODO:
- * - mode hard-coded colors to theme
- */
-
 import type { ParsedRequestForProposal } from "@/app/data-access/bookings.types";
 import DownloadIcon from "@icons/download.svg";
 import CalendarIcon from "@icons/calendar.svg";
