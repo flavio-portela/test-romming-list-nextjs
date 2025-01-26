@@ -4,19 +4,9 @@ import type {
   ParsedEvent,
   Booking,
 } from "@/app/data-access/bookings.types";
-import { NextResponse, NextRequest } from "next/server";
 import { format, fromUnixTime, getUnixTime } from "date-fns";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const search = searchParams.get("search") || "";
-  const events = await getEvents({
-    search,
-  });
-  return NextResponse.json(events);
-}
-
-async function getEvents({ search = "" }: { search: string }) {
+export async function getEvents({ search = "" }: { search: string }) {
   const file = await fs.readFile(
     process.cwd() + "/src/app/data-access/test-data.json",
     "utf-8"

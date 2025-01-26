@@ -1,12 +1,29 @@
+"use client";
+import { useCallback } from "react";
+import { debounce } from "lodash";
 import SearchIcon from "@icons/search.svg";
 import FiltersIcon from "@icons/filters.svg";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
-interface SearchHeaderProps {
-  onSearch: (search: string) => void;
-}
+const SearchHeader = () => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
 
-const SearchHeader = ({ onSearch }: SearchHeaderProps) => {
+  const handleSearch = useCallback(
+    debounce((term: string) => {
+      const params = new URLSearchParams(searchParams);
+      if (term) {
+        params.set("query", term);
+      } else {
+        params.delete("query");
+      }
+      replace(`${pathname}?${params.toString()}`);
+    }, 300),
+    [searchParams]
+  );
+
   return (
     <div className={`flex gap-10 mt-8`}>
       <div className="flex relative min-w-72">
@@ -16,8 +33,9 @@ const SearchHeader = ({ onSearch }: SearchHeaderProps) => {
         <input
           className="w-full rounded-lg border-2 border-slate-300 flex pl-12 font-medium text-sm"
           placeholder="Search"
+          defaultValue={searchParams.get("query")?.toString()}
           onChange={(e) => {
-            onSearch(e.target.value);
+            handleSearch(e.target.value);
           }}
         />
       </div>
