@@ -1,6 +1,11 @@
 import { promises as fs } from "fs";
-import type { Rooming, ParsedEvent } from "@/app/data-access/bookings.types";
+import type {
+  Rooming,
+  ParsedEvent,
+  Booking,
+} from "@/app/data-access/bookings.types";
 import { NextResponse, NextRequest } from "next/server";
+import { fromUnixTime, getUnixTime } from "date-fns";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -30,13 +35,16 @@ async function getEvents({ search = "" }: { search: string }) {
     if (events[eventName]) {
       // We already have this event
       // append to the rfp list
+      const { minBookingDate, maxBookingDate } = getMinMaxBookingDates(
+        current.drl_rooming_list_bookings
+      );
       events[eventName].RequestForProposalList.push({
         agreementType: current.drl_rfp.agreement_type,
         cutoffDate: current.cutoff_date,
         name: current.drl_rfp.event_internal_name,
         totalBookings: current.drl_rooming_list_bookings.length,
-        maxBookingDate: new Date().toISOString(),
-        minBookingDate: new Date().toISOString(),
+        maxBookingDate: fromUnixTime(maxBookingDate).toISOString(),
+        minBookingDate: fromUnixTime(minBookingDate).toISOString(),
         id: current.drl_rfp.rfp_launchpad_id,
         agreementPath: current.drl_rfp.agreement_path,
       });
@@ -87,4 +95,22 @@ async function getEvents({ search = "" }: { search: string }) {
   }
 
   return eventsList;
+}
+
+function getMinMaxBookingDates(bookings: Array<Booking>) {
+  let maxBookingDate = 0;
+  let minBookingDate = 0;
+  for (let i = 0; i < bookings.length; i++) {
+    const bookingDate = getUnixTime(bookings[i].booking_date);
+    if (bookingDate > maxBookingDate) {
+      maxBookingDate = bookingDate;
+    }
+    if (bookingDate < minBookingDate || minBookingDate === 0) {
+      minBookingDate = bookingDate;
+    }
+  }
+  return {
+    maxBookingDate,
+    minBookingDate,
+  };
 }
