@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@types/lodash": "^4.17.14",
-    "date-fn": "^0.0.2",
+    "date-fns": "^4.1.0",
     "lodash": "^4.17.21",
     "next": "15.1.6",
     "react": "^19.0.0",

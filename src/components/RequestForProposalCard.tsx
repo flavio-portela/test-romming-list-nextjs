@@ -6,6 +6,7 @@
 import type { ParsedRequestForProposal } from "@/app/data-access/bookings.types";
 import DownloadIcon from "@icons/download.svg";
 import CalendarIcon from "@icons/calendar.svg";
+import { format } from "date-fns";
 
 interface RFPCard {
   rfp: ParsedRequestForProposal;
@@ -27,10 +28,10 @@ const RequestForProposalCard = ({ rfp }: RFPCard) => {
         <div className="flex flex-col items-center">
           <div className="bg-[#3E8CFF1A] w-[56px] rounded-lg">
             <div className="bg-[#3E8CFF40] rounded-t-lg text-[#3E8CFF] uppercase text-xs font-semibold text-center">
-              Jan
+              {format(rfp.cutoffDate, "MMM")}
             </div>
             <div className="text-[#3E8CFF] text-[26px] font-bold text-center">
-              8
+              {format(rfp.cutoffDate, "d")}
             </div>
           </div>
           <span className="text-sm text-[#777E90] font-medium mt-1">
@@ -41,7 +42,8 @@ const RequestForProposalCard = ({ rfp }: RFPCard) => {
       <div className="flex items-center">
         <CalendarIcon />
         <span className="ml-1 text-sm text-[#777E90]">
-          Jan 31 - Feb 2, 2025
+          {format(rfp.minBookingDate, "MMM d")} -{" "}
+          {format(rfp.maxBookingDate, "MMM d yyyy")}
         </span>
       </div>
       <div className="flex mt-4 gap-2">
