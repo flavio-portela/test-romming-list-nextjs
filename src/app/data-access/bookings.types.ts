@@ -46,7 +46,7 @@ export interface ParsedRequestForProposal {
   id: RequestForProposal["rfp_launchpad_id"];
 }
 
-export interface Event {
+export interface ParsedEvent {
   name: RequestForProposal["event_name"];
   RequestForProposalList: Array<ParsedRequestForProposal>;
 }

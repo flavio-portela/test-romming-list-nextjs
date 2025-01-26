@@ -1,16 +1,40 @@
-import { getEvents } from "@/app/data-access/bookings";
+"use client";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import debounce from "lodash/debounce";
 
 import SearchHeader from "@/components/SearchHeader";
-import RequestForProposalCard from "@/components/RequestForPropsalCard";
+import RequestForProposalCard from "@/components/RequestForProposalCard";
 
-export default async function Home() {
-  const eventsList = await getEvents();
+import type { ParsedEvent } from "@/app/data-access/bookings.types";
+
+export default function Home() {
+  const [events, setEvents] = useState<ParsedEvent[]>([]);
+
+  const fetchEvents = useCallback(
+    async (searchStr: string = "") => {
+      const res = await fetch(`/api/events?search=${searchStr}`);
+      const data = await res.json();
+      setEvents(data);
+    },
+    [setEvents]
+  );
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const handleDebounceSearch = (s: string) => {
+    fetchEvents(s.toLowerCase());
+  };
+
+  const handleSearch = useCallback(debounce(handleDebounceSearch, 300), []);
+
   return (
     <div className="min-h-screen bg-(--background) p-10">
       <h3 className="text-2xl font-bold">Rooming List Management: Events</h3>
-      <SearchHeader />
+      <SearchHeader onSearch={handleSearch} />
       <div className="mt-10 flex gap-10 flex-col">
-        {eventsList.map((event) => {
+        {events.map((event) => {
           return (
             <div key={event.name}>
               <div className="flex justify-center items-center">

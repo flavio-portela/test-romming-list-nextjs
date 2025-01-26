@@ -3,9 +3,10 @@ import FiltersIcon from "@icons/filters.svg";
 
 interface SearchHeaderProps {
   className?: string;
+  onSearch: (search: string) => void;
 }
 
-const SearchHeader = ({ className = "" }: SearchHeaderProps) => {
+const SearchHeader = ({ className = "", onSearch }: SearchHeaderProps) => {
   return (
     <div className={`flex gap-10 mt-8 ${className}`}>
       <div className="flex relative min-w-72">
@@ -15,6 +16,9 @@ const SearchHeader = ({ className = "" }: SearchHeaderProps) => {
         <input
           className="w-full rounded-lg border-2 border-slate-300 flex pl-12 font-medium text-sm"
           placeholder="Search"
+          onChange={(e) => {
+            onSearch(e.target.value);
+          }}
         />
       </div>
       <button className="flex gap-3 h-10 bg-white rounded-lg border-2  border-slate-300 p-5 justify-center items-center">
