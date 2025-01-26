@@ -27,7 +27,7 @@ export async function getEvents({
     });
   }
 
-  return eventsList;
+  return filteredEvents;
 }
 
 function filterBySearchTerm(
