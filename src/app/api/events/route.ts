@@ -5,7 +5,7 @@ import type {
   Booking,
 } from "@/app/data-access/bookings.types";
 import { NextResponse, NextRequest } from "next/server";
-import { fromUnixTime, getUnixTime } from "date-fns";
+import { format, fromUnixTime, getUnixTime } from "date-fns";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -60,10 +60,17 @@ async function getEvents({ search = "" }: { search: string }) {
     let RFPMatch = false; // flag to tell if a search term matched any RFP
     let filteredEvents = eventsList.map((event) => {
       const RFPs = event.RequestForProposalList.filter((rfp) => {
+        // Get dates
+        const cutOffDateStr = format(rfp.cutoffDate, "MMM d");
+        const minBookingDateStr = format(rfp.minBookingDate, "MMM d");
+        const maxBookingDateStr = format(rfp.maxBookingDate, "MMM d yyyy");
         const match =
           rfp.name.toLowerCase().includes(search) ||
           rfp.cutoffDate.toLowerCase().includes(search) ||
-          rfp.agreementType.toLowerCase().includes(search);
+          rfp.agreementType.toLowerCase().includes(search) ||
+          cutOffDateStr.toLowerCase().includes(search) ||
+          minBookingDateStr.toLowerCase().includes(search) ||
+          maxBookingDateStr.toLowerCase().includes(search);
         if (match) {
           RFPMatch = true;
         }
